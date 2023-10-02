@@ -1,105 +1,104 @@
 import sys
+from rdkit import Chem
+from rdkit.Chem import MACCSkeys
 
-def change_name(mol_2):
+def MACCS(h):
+    mols = [Chem.MolFromSmiles(i) for i in h]
+    keys = [MACCSkeys.GenMACCSKeys(mol) for mol in mols]
+    bits = [key.ToBitString() for key in keys]
 
-  with open(mol_2, 'r') as f:
-     lines = f.readlines()
+    return bits
 
-     intermed = []
-    
-     #print(lines)
+def change_name(mol_2, new_name):
 
-     for n in lines:
-          a = n.split(":")
-          intermed.append(a)     
-     
-     #print(intermed)
+    with open(mol_2, 'r') as f:
+        str_dados = f.read()
 
-     reduc = []
+    separador = '     1 <0>         1 TEMP              0 ****  ****    0 ROOT'
+    list_dados = str_dados.split(separador)
 
-     for n in intermed:
-          for i in n:
-               reduc.append(i)
-     
-     #print(reduc)
+    # não me interessa o último elemento da lista apos o separador
+    # vou retirar o último elemento da lista
+    n = len(list_dados)
+    list_dados = list_dados[:n-1]
 
-     l = []
+    # Tenho que pegar informações importantes. As informações devem permanecer
+    # em seus respectivos blocos, portanto, acredito que devo indexar os blocos
+    # para manter suas posições. Para essa tarefa seria importante criar um
+    # dicionário cuja chave seria o indexador do bloco e o valor poderia ser
+    # os dados do bloco. Após essa tarefa seria importante pergar informaçoes no
+    # bloco que são importantes para serem comparadas, o dado3 e o dado4.
+    # Essas informações também devem estar indexar a chave do dicionário. Logo
+    # os valores do dicionário podem ser tuplas com três posições, exemplo
+    # (dados_do_bloco, smille_dado3, energia_dado4)
 
-     for key, n in enumerate(reduc):
-          if n == '##########                           RD_SMILES':
-               o = key + 1
-               l.append(o)
-     
-     #print(l)
-     
-     h = []
 
-     for n in l:
-          for m in l:
-              if reduc[n] == reduc[m] and n != m:
-                    print(reduc[n])
-                    print(n)
-                    print(reduc[m])
-                    print(m)
-                    h.append(n)
-     print(h)
-     
-     x = 0
-     score_1 = []
-     score_2 = []
-     
-     for key, n in enumerate(reduc):
-        if h[x] == key:
-            score_1.append(reduc[key + 2])
-     
-     y = x + 1
+    # Tarefa 1: indexar os blocos
+    # Tarefa 2: pegar informações sensíveis dado3 e dado4
+    # Tarefa 3: adicionar dado3, dado4 e informação do bloco em uma tupla no
+    # dicionário.
+    h = []
+    e = []
+    dict_dados = {}
+    for i, dados in enumerate(list_dados):
+        smille_dado3 = dados.split('RD_SMILES:')[1].split('##########')[0].strip()
+        h.append(smille_dado3)
+        energia_dado4 = dados.split('desc_Grid_vdw_energy:')[1].split('##########')[0].strip()
+        e.append(energia_dado4)
 
-     for key, n in enumerate(reduc):
-        if h[y] == key:
-            score_2.append(reduc[key + 2])    
-     
-     l_1 = []
-     l_2 = []
+    maccs_descriptor = MACCS(h)
 
-     for n in score_1:
-        n = n[10:-1]
-        n = float(n)
-        l_1.append(n)
+    for key_m, n in enumerate(maccs_descriptor):
+        for key_e, energia in enumerate(e):
+            for key_l, dados in enumerate(list_dados):
+                if key_m == key_l and key_e == key_l and key_l == key_m:
+                    dict_dados[key_l] = (dados, smille_dado3, energia, n)
 
-     for n in score_2:
-        n = n[10:-1]
-        n = float(n)
-        l_2.append(n)
+    # Agora que já tenho minha estrutura de dados pronta, eu posso tentar comparar
+    # as informações para tratar os dados.
+    # O que eu quero é comparar o dado3 do indice 0 com o dado3 de todos os
+    # outros indices, se dado3[0] = dado3[n] então eu quero comparar o dado4 do
+    # indice 0 com o dado4 do indice n. Essas comparações apresentam como objetivo
+    # identificar o bloco de dados que desejo remover do dicionário.
 
-     l_test = []
+    # Tarefa 1: Encontrar os indices que devem ser removidos do dicionário.
+    # Tarefa 2: Adicionar esse indices em um conjunto (set) para que sejam removidos
+    # posteriormente.
 
-     for key_1, n in enumerate(l_1):
-        for key_2, m in enumerate(l_2):
-            if key_1 == key_2:
-                if n < m:
-                    l_test.append("score_1")
+    comp_dict = len(dict_dados.keys())
+    indices_a_serem_apagados = set()
+    for i in dict_dados.keys():
+        smille = dict_dados[i][3]
+        energia = float(dict_dados[i][2])
+        for j in range(i+1, comp_dict):
+            if smille == dict_dados[j][3] and i != j:
+                if energia < float(dict_dados[j][2]):
+                    indices_a_serem_apagados.add(i)
                 else:
-                    l_test.append("score_2")
-     ''' 
-     for n in l_test:
-        if n == "score_1":
-            for key, n in enumerate(reduc):
-                if h[0] == key:
-                    
-        else:
-            print(reduc[h[1]])
+                    indices_a_serem_apagados.add(j)
 
-    
-     print(l_test)
-     '''
-            
-                  
 
+    print(indices_a_serem_apagados)
+
+    # Agora que já tenho os indices a serem removidos em um conjunto, devo tentar
+    # remove-los do dicionário de dados.
+
+    for i in indices_a_serem_apagados:
+        if i in dict_dados.keys():
+            del dict_dados[i]
+
+    novos_dados = dict_dados.copy()
+
+    # Agora podemos escrever os dados desse novo dicionário em um arquivo.
+
+    with open(new_name, 'w') as f:
+        for dados in novos_dados.values():
+            print(dados[0], end='\n', file=f)
 
 if __name__ == '__main__':
-   if len(sys.argv) < 2:
+   if len(sys.argv) < 3:
         print("Usage: python Change_Name.py <MOL_2>")
    else:
         mol_2 = sys.argv[1]
-#        new_mol_2 = sys.argv[2]
-        change_name(mol_2)
+        new_name = sys.argv[2]
+        change_name(mol_2, new_name)
