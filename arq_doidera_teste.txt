@@ -1,0 +1,54 @@
+#######     dado1:   info_01
+#######     dado2:   8.99999
+#######     dado3: queroisso1
+#######     dado4:  -7.28999
+#######     dado5:  -7.28999
+
+Aqui tem um monte de coisas
+
+termina isso aqui
+
+
+#######     dado1:   info_02
+#######     dado2:   9.99999
+#######     dado3: queroisso2
+#######     dado4:  -3.28999
+#######     dado5:  -3.28999
+
+Aqui tem um monte de coisas
+
+termina isso aqui
+
+
+#######     dado1:   info_01
+#######     dado2:   8.99999
+#######     dado3: queroisso1
+#######     dado4:  -8.28999
+#######     dado5:  -8.28999
+
+Aqui tem um monte de coisas
+
+termina isso aqui
+
+
+#######     dado1:   info_02
+#######     dado2:   9.99999
+#######     dado3: queroisso2
+#######     dado4:  -5.28999
+#######     dado5:  -5.28999
+
+Aqui tem um monte de coisas
+
+termina isso aqui
+
+
+#######     dado1:   info_02
+#######     dado2:   9.99999
+#######     dado3: queroisso2
+#######     dado4:  -4.28999
+#######     dado5:  -5.28999
+
+Aqui tem um monte de coisas
+
+termina isso aqui
+
